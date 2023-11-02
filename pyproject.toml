@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "argtrace"
+name = "yappy"
 version = "0.1.0"
 description = ""
 authors = ["manishshettym <manishs@berkeley.edu>"]

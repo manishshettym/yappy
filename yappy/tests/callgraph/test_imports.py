@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 from unittest import TestCase
-from argtrace.callgraph.imports import replace_imports
+from yappy.callgraph.imports import replace_imports
 
 
 class TestReplaceImports(TestCase):
