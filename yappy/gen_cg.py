@@ -5,7 +5,7 @@ from yappy.callgraph.pycg import CallGraphGenerator, inverse_cg, formats
 from yappy.callgraph.imports import fix_imports
 
 
-repo_path = "./data/yt-fts/yt_fts"
+repo_path = "./data/yt-fts"
 repo_path = fix_imports(repo_path)
 
 python_files = []
