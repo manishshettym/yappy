@@ -43,22 +43,23 @@ def get_backward_slice(dependencies, line):
     return sorted(list(slice))
 
 
-code = """def foo(x, y):
+code = """def foo(x, y, z):
     x = x + 1
     y = y + 2
-    for i in range(a):
-        z = x + 2
-    y = bar(z)
+    for i in range(y):
+        if i % 2 == 0:
+            z = x + 2
+        else:
+            z = x + 3
+        a = y + 1
+    k = bar(z)
     return a
 """
 
 ddg = get_data_dependencies(code)
-slice_lines = get_backward_slice(ddg, 6)
+print(ddg)
+slice_lines = get_backward_slice(ddg, 10)
+
+
+print(slice_lines)
 print_with_highlight(code, slice_lines)
-
-
-with open("test.py") as f:
-    code = f.read()
-    ddg = get_data_dependencies(code)
-    slice_lines = get_backward_slice(ddg, 56)
-    print_with_highlight(code, slice_lines)
