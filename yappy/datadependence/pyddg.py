@@ -99,3 +99,21 @@ def get_data_dependencies(code):
     visitor = DataDependencyVisitor()
     visitor.visit(tree)
     return visitor.dependencies
+
+
+code = """def foo(x, y, z):
+    x = x + 1
+    y = y + 2
+    for i in range(y):
+        if i % 2 == 0:
+            z = x + 2
+        else:
+            z = x + 3
+        a = y + 1
+    k = bar(z)
+    return a
+"""
+
+ddg = get_data_dependencies(code)
+for key, value in ddg.items():
+    print(f"{key}: {value}")
