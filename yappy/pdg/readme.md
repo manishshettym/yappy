@@ -66,3 +66,12 @@ node B is program dependent on node A.
 Node B is program dependent on another node A, iff:
 1. B is data dependent on A; or
 2. B is control dependent on A.
+
+
+
+====================================================================================================
+References:
+1. [Program Dependence Graphs](https://www.cs.utexas.edu/~pingali/CS395T/2009fa/papers/ferrante87.pdf)
+2. [Construcing PDG](https://compilers.cs.uni-saarland.de/teaching/spa/2014/slides/ProgramDependenceGraph.pdf)
+3. [Control Dependence Graphs](https://home.cs.colorado.edu/~kena/classes/5828/s00/lectures/lecture15.pdf)
+4. [Control Flow Analysis](https://web.cse.ohio-state.edu/~rountev.1/788/lectures/ControlFlowAnalysis.pdf)
