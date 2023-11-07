@@ -1,3 +1,4 @@
+import enum
 import gast as ast
 from python_graphs.program_graph import (
     make_node_for_ast_list,
@@ -43,7 +44,19 @@ def add_ast_edges(program_graph, root):
     return program_graph
 
 
+class PDGEdgeType(enum.Enum):
+    CD = 0
+    DD = 1
+
+
 def post_dominator_tree(cfg):
+    """Compute the post-dominator tree of a control flow graph.
+
+    A node V is post-dominated by a node U if every path from V to the end of
+    the CFG must go through U.
+
+    returns: a dictionary mapping each node to its set of post-dominators.
+    """
     nodes = cfg.get_control_flow_nodes()
     exit_nodes = [node for node in nodes if not node.next]
 
@@ -67,4 +80,29 @@ def post_dominator_tree(cfg):
         if not change:
             break
 
+    # print_pdt(pdom)
+
     return pdom
+
+
+def get_pdt_parent(pdt, node):
+    """Get the parent of a node in the post-dominator tree.
+
+    parent is one that post dominates the node and is
+    dominated by all other post dominators of the node.
+    """
+    candidates = pdt[node]
+    for candidate in candidates:
+        if all(candidate not in pdt[other] for other in candidates):
+            return candidate
+    return None
+
+
+def print_pdt(pdt):
+    print("Post Dominator Tree")
+    for node in pdt:
+        print(node.instruction.node)
+        print("Post Dominators:")
+        for post_dominator in pdt[node]:
+            print(post_dominator.instruction.node)
+        print()
