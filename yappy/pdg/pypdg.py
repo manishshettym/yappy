@@ -120,41 +120,46 @@ class ProgramDependenceGraph(ProgramGraph):
                 current = self.ipdom[current]
 
 
+def construct_pdg(program_node):
+    """Construct the Program Dependence Graph from an AST."""
+    cfg = control_flow.get_control_flow_graph(program_node)
+    render_cfg(cfg, include_src=code, path="cfg.png")
+
+    # Perform the analyses
+    def_use_analysis = VariableDefUseAnalysis()  # NOTE: Works perfectly!
+    reaching_def_analysis = ReachingDefinitionAnalysis()  # NOTE: Works perfectly!
+
+    for block in cfg.get_enter_control_flow_nodes():
+        def_use_analysis.visit(block)
+
+    for block in cfg.get_enter_control_flow_nodes():
+        reaching_def_analysis.visit(block)
+
+    # Construct the data dependence graph
+    pdg = ProgramDependenceGraph(cfg, def_use_analysis, reaching_def_analysis)
+
+    # render the data dependence graph
+    render_pg(pdg, path="pdg.png")
+
+    return pdg
+
+
 ############ Test ############
 
+if __name__ == "__main__":
+    code = """def foo(x, y, z):
+        x = x + 1
+        y = y + 2
+        a = 0
+        for i in range(y):
+            if i % 2 == 0:
+                z = x + 2
+            else:
+                z = x + 3
+            a = y + 1
+        k = bar(z)
+        return a
+    """
 
-code = """def foo(x, y, z):
-    x = x + 1
-    y = y + 2
-    a = 0
-    for i in range(y):
-        if i % 2 == 0:
-            z = x + 2
-        else:
-            z = x + 3
-        a = y + 1
-    k = bar(z)
-    return a
-"""
-
-
-program_node = program_to_ast(code)
-cfg = control_flow.get_control_flow_graph(program_node)
-render_cfg(cfg, include_src=code, path="cfg.png")
-
-
-# Perform the analyses
-def_use_analysis = VariableDefUseAnalysis()  # NOTE: Works perfectly!
-reaching_def_analysis = ReachingDefinitionAnalysis()  # NOTE: Works perfectly!
-
-for block in cfg.get_enter_control_flow_nodes():
-    def_use_analysis.visit(block)
-
-for block in cfg.get_enter_control_flow_nodes():
-    reaching_def_analysis.visit(block)
-
-# Construct the data dependence graph
-pdg = ProgramDependenceGraph(cfg, def_use_analysis, reaching_def_analysis)
-
-# render the data dependence graph
-render_pg(pdg, path="pdg.png")
+    program_node = program_to_ast(code)
+    pdg = construct_pdg(program_node)
