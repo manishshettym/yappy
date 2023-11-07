@@ -46,24 +46,25 @@ def add_ast_edges(program_graph, root):
 def post_dominator_tree(cfg):
     nodes = cfg.get_control_flow_nodes()
     exit_nodes = [node for node in nodes if not node.next]
-    post_dominators = {node: set(nodes) for node in nodes}
 
+    # Initialization: ∀n ∈ N \ {end}: pdom(n) = N
+    pdom = {node: set(nodes) for node in nodes}
+
+    # Initialization: pdom(end) = {end}
     for exit_node in exit_nodes:
-        post_dominators[exit_node] = {exit_node}
+        pdom[exit_node] = {exit_node}
 
+    # Iteration: ∀n ∈ N \ {end}: pdom(n) = {n} ∪ (⋂ pdom(s)) ∀s ∈ succ(n)
     while True:
         change = False
         for node in nodes:
             if node in exit_nodes:
                 continue
-            if node.prev:  # Check if there are any predecessors
-                new_post_dominators = set.intersection(
-                    *(post_dominators[pred] | {pred} for pred in node.prev)
-                )
-                if new_post_dominators != post_dominators[node]:
-                    post_dominators[node] = new_post_dominators
-                    change = True
+            new_pdom = {node} | set.intersection(*(pdom[succ] for succ in node.next))
+            if new_pdom != pdom[node]:
+                pdom[node] = new_pdom
+                change = True
         if not change:
             break
 
-    return post_dominators
+    return pdom
