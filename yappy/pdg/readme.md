@@ -38,6 +38,23 @@ where:
 - A is `post-dominated` by B, iff every path from B to the exit node
 contains A.
 
+```math
+Implementation Logic:
+--------------------
+
+Given, a CFG we want to add control dependence edges from node B to A.
+
+From cond1, there must be a path from A to B in the CFG.
+
+From cond2, A must not not be post-dominated by B ==> there is a path from A to {end} that does not contain B. ==> A must have two exit edges:
+    - Following one will result in B being executed.
+    - Following the other may result in B not being executed.
+
+Observations:
+1. A must be a branch node! So for a given node B, we need to find all branch nodes A that occur before B in the CFG.
+2. Lastly we need to check that any C in the path from A to B is post-dominated by B.
+```
+
 
 # Program Dependence Graph
 We formally define the program dependence graph
