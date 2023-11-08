@@ -1,4 +1,5 @@
 import enum
+import gast as ast
 
 
 class PDGEdgeType(enum.Enum):
@@ -66,6 +67,8 @@ def immediate_post_dominator(pdom):
                 ipdom[n] = m
                 break
 
+    # print_ipdom(ipdom)
+
     return ipdom
 
 
@@ -75,6 +78,14 @@ def print_pdom(pdom):
         print(f"Post Dominators for {cfgnode2code(node)}:")
         for post_dominator in pdom[node]:
             print(cfgnode2code(post_dominator))
+        print()
+
+
+def print_ipdom(ipdom):
+    print("=== Immediate Post Dominators === ")
+    for node in ipdom:
+        print(f"Immediate Post Dominator for {cfgnode2code(node)}:")
+        print(cfgnode2code(ipdom[node]))
         print()
 
 
