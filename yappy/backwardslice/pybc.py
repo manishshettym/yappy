@@ -107,7 +107,7 @@ def print_with_highlight(code, highlight_lines):
     lines = code.splitlines()
     for i, line in enumerate(lines):
         if i + 1 in highlight_lines:
-            print("\033[92m{}\033[0m".format(line))
+            print("\033[1;31;92m{}\033[0m".format(line))
         else:
             print(line)
 
