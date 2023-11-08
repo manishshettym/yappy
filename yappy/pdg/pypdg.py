@@ -1,9 +1,7 @@
 import collections
 import gast as ast
 
-from python_graphs import control_flow
 from python_graphs import instruction as instruction_module
-
 from python_graphs.program_utils import program_to_ast
 from python_graphs.program_graph import (
     ProgramGraph,
@@ -21,6 +19,7 @@ from yappy.pdg.utils import (
     cfgnode2code,
 )
 
+import yappy.pdg.cfg as control_flow
 from yappy.dataflow.reachdef import ReachingDefinitionAnalysis
 from yappy.dataflow.vardefuse import VariableDefUseAnalysis
 
@@ -85,6 +84,7 @@ class ProgramDependenceGraph(ProgramGraph):
             for defn in reaching_defB:
                 if defn[0] == var:
                     nodeA = self.get_node_by_ast_node(defn[1].instruction.node)
+                    # print(f"DD: {cfgnode2code(defn[1])} --> {cfgnode2code(cfg_nodeB)}")
                     self.add_new_edge(nodeB.id, nodeA.id, edge_type=PDGEdgeType.DD)
 
     def add_control_dependence_edges(self, nodeA):
@@ -103,6 +103,12 @@ class ProgramDependenceGraph(ProgramGraph):
             if cfg_nodeB in self.pdom[cfg_nodeA]:
                 continue
 
+            # @manish: a node could have no post dominators
+            # e.g., ... if <c>: return ...
+            # in this case, we skip the node
+            if cfg_nodeA not in self.ipdom:
+                continue
+
             # move up from B in the post-dominator tree until A's ipdom
 
             ipdom_nodeA = self.ipdom[cfg_nodeA]
@@ -114,6 +120,7 @@ class ProgramDependenceGraph(ProgramGraph):
 
                 # add the control dependence edge if not to itself
                 if nodeC.id != nodeA.id:
+                    # print(f"CD: {cfgnode2code(cfg_nodeA)} --> {cfgnode2code(current)}")
                     self.add_new_edge(nodeC.id, nodeA.id, edge_type=PDGEdgeType.CD)
 
                 # move up the post-dominator tree
