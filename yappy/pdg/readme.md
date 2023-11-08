@@ -30,9 +30,11 @@ node B is control dependent on node A.
 
 ## Control Dependence
 Node B is control dependent on another node A, iff:
-1. there exists a directed path from A to B in the control flow graph,
+
+- $cond_1$: there exists a directed path from A to B in the control flow graph,
 such that any C in the path is `post-dominated` by B; and
-2. A is not post-dominated by B.
+
+- $cond_2$: A is not post-dominated by B.
 
 where: A is `post-dominated` by B, iff every path from B to the exit node
 contains A.
@@ -41,11 +43,11 @@ contains A.
 
 Given, a CFG we add control dependence edges from some node B to A.
 
-From `cond1`, there must be a path from A to B in the CFG.
+From $cond_1$, there must be a path from A to B in the CFG.
 
-From cond2, A must not not be post-dominated by B ==> there is a path from A to {end} that does not contain B. ==> A must have two exit edges:
-    - Following one will result in B being executed.
-    - Following the other may result in B not being executed.
+From $cond_2$, A must not not be post-dominated by B ==> there is a path from A to {end} that does not contain B. ==> A must have two exit edges:
+- Following one will result in B being executed.
+- Following the other may result in B not being executed.
 
 Therefore:
 1. A must be a branch node! So for a given node B, we need to find all branch nodes A that occur before B in the CFG.
