@@ -42,7 +42,7 @@ contains A.
 Implementation Logic:
 --------------------
 
-Given, a CFG we want to add control dependence edges from node B to A.
+\text{Given, a CFG we want to add control dependence edges from node B to A.}
 
 From cond1, there must be a path from A to B in the CFG.
 
