@@ -727,17 +727,40 @@ class ControlFlowVisitor(object):
         method = getattr(self, method_name, None)
         if method is not None:
             current_block = method(node, current_block)
-        else:
-            print("No method for", node.__class__.__name__)
 
         return current_block
 
     def visit_With(self, node, current_block):
-        """Visit a With node from the AST."""
-        # A with statement is equivalent to a try/finally block.
-        # The body of the with statement is the try block.
-        # The exit block of the with statement is the finally block.
-        raise NotImplementedError
+        """Visit a With node of the AST.
+
+        Blocks:
+        current_block: This is where the with statement resides.
+        body_block: The block representing the body of the with statement.
+        after_block: The block to which control is passed after the with statement
+            is completed.
+        """
+        # Visit the context expression(s) that appear in the 'with' header.
+        for item in node.items:
+            self.add_new_instruction(current_block, item.context_expr)
+            if item.optional_vars:
+                self.add_new_instruction(
+                    current_block,
+                    item.optional_vars,
+                    accesses=instruction_module.create_writes(item.optional_vars, node),
+                )
+
+        # Create a new block for the body of the with statement.
+        body_block = self.new_block(node=node, label="with_body_block")
+        current_block.add_exit(body_block)
+
+        # Visit the body of the with statement.
+        body_block = self.visit_list(node.body, body_block)
+
+        # Create a block for after the with statement.
+        after_block = self.new_block(node=node, label="after_with_block")
+        body_block.add_exit(after_block)
+
+        return after_block
 
     def visit_list(self, items, current_block):
         """Visit each of the items in a list from the AST."""
