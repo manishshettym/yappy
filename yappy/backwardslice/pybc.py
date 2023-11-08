@@ -1,151 +1,66 @@
-import ast
+import gast as ast
+import pygraphviz
+
+from python_graphs.program_utils import program_to_ast
+from yappy.pdg.pypdg import construct_pdg
+from yappy.backwardslice.utils import add_parent_info
 
 
-class DataDependencyVisitor(ast.NodeVisitor):
-    def __init__(self):
-        self.dependencies = {}
-        self.current_blocks = []
+def compute_backward_slice(pdg, target_node):
+    """Compute the backward slice of a target node in a Program Dependence Graph.
 
-    def visit_FunctionDef(self, node):
-        for arg in node.args.args:
-            self.dependencies[arg.arg] = []
-        self.current_blocks.append((node.name, node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
+    Args:
+        pdg (ProgramDependenceGraph): The Program Dependence Graph.
+        target_node (Node): The target node.
 
-    def visit_Assign(self, node):
-        targets = [t.id for t in node.targets if isinstance(t, ast.Name)]
-        values = [v.id for v in ast.walk(node.value) if isinstance(v, ast.Name)]
-        for target in targets:
-            if target not in self.dependencies:
-                self.dependencies[target] = []
-            for value in values:
-                self.dependencies[target].append((value, node.lineno))
-            for block in self.current_blocks:
-                self.dependencies[target].append(block)
-        self.generic_visit(node)
+    Returns:
+        set: The set of nodes that are in the backward slice of the target node.
+    """
+    visited = set()
+    stack = [target_node]
 
-    def visit_AugAssign(self, node):
-        target = node.target.id if isinstance(node.target, ast.Name) else None
-        values = [v.id for v in ast.walk(node.value) if isinstance(v, ast.Name)]
-        if target:
-            if target not in self.dependencies:
-                self.dependencies[target] = []
-            for value in values:
-                self.dependencies[target].append((value, node.lineno))
-            for block in self.current_blocks:
-                self.dependencies[target].append(block)
-        self.generic_visit(node)
+    while stack:
+        node = stack.pop()
+        if node not in visited:
+            visited.add(node)
+            for neighbor in pdg.outgoing_neighbors(node):
+                stack.append(neighbor)
 
-    #### Dependency in blocks of code ####
-
-    def visit_For(self, node):
-        # loop variables are dependent on the loop condition
-        # and the loop body is dependent on the loop variables
-
-        # loop variables
-        if isinstance(node.target, ast.Tuple):
-            targets = [t.id for t in node.target.elts if isinstance(t, ast.Name)]
-        else:
-            targets = [node.target.id]
-
-        values = [v.id for v in ast.walk(node.iter) if isinstance(v, ast.Name)]
-        for target in targets:
-            if target not in self.dependencies:
-                self.dependencies[target] = []
-            for value in values:
-                self.dependencies[target].append((value, node.lineno))
-            for block in self.current_blocks:
-                self.dependencies[target].append(block)
-
-        # loop body (visit the body)
-        self.current_blocks.append(("For", node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
-
-    def visit_If(self, node):
-        self.current_blocks.append(("If", node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
-
-    def visit_IfExp(self, node):
-        self.current_blocks.append(("IfExp", node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
-
-    def visit_While(self, node):
-        self.current_blocks.append(("While", node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
-
-    def visit_With(self, node):
-        self.current_blocks.append(("With", node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
-
-    def visit_Try(self, node):
-        self.current_blocks.append(("Try", node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
-
-    def visit_ExceptHandler(self, node):
-        self.current_blocks.append(("Except", node.lineno))
-        self.generic_visit(node)
-        self.current_blocks.pop()
+    return visited
 
 
-def get_data_dependencies(code):
-    tree = ast.parse(code)
-    visitor = DataDependencyVisitor()
-    visitor.visit(tree)
-    return visitor.dependencies
+def print_code_with_highlights(code, backward_slice):
+    """Print the code with highlights for the nodes in the backward slice.
 
-
-def print_with_highlight(code, highlight_lines):
-    # TODO: FIXME: this is hacky because we need to handle this at the
-    # statement level and not line level.
-    lines = code.splitlines()
+    Args:
+        code (str): The code.
+        backward_slice (set): a set of ast.Node objects that are in the slice
+    """
+    lines = code.split("\n")
     for i, line in enumerate(lines):
-        if i + 1 in highlight_lines:
-            print("\033[1;31;92m{}\033[0m".format(line))
+        node = None
+        for b_node in backward_slice:
+            if hasattr(b_node, "lineno"):
+                if b_node.lineno == i + 1:
+                    node = b_node
+                    break
+            elif hasattr(b_node, "parent") and hasattr(b_node.parent, "lineno"):
+                if b_node.parent.lineno == i + 1:
+                    node = b_node
+                    break
+        if node is not None:
+            print(f"\033[1;31;92m{line}\033[0m")
         else:
             print(line)
 
-    print()
 
-
-def get_backward_slice(dependencies, line):
-    slice = set()
-    slice.add(line)
-
-    def visit(var):
-        if var in dependencies:
-            for dep, dep_line in dependencies[var]:
-                if dep_line < line and dep_line not in slice:
-                    slice.add(dep_line)
-                    visit(dep)
-
-    # visiting a variable whose dependency is at line
-    # i.e., LHS of the assignment at line
-    # note: only visits LHS and not variables after line (because backward slice)
-    for var in dependencies:
-        for dep, dep_line in dependencies[var]:
-            if dep_line == line:
-                visit(var)
-
-    # visiting the variables that the line depends on
-    # i.e., RHS of the assignment at line
-    for var, deps in dependencies.items():
-        for dep, dep_line in deps:
-            if dep_line == line:
-                visit(dep)
-
-    return sorted(list(slice))
+############ Test ############
 
 
 code = """def foo(x, y, z):
     x = x + 1
     y = y + 2
+    a = 0
     for i in range(y):
         if i % 2 == 0:
             z = x + 2
@@ -156,10 +71,19 @@ code = """def foo(x, y, z):
     return a
 """
 
-ddg = get_data_dependencies(code)
-print(ddg)
-slice_lines = get_backward_slice(ddg, 10)
+# load the code from test.py
+code = open("test.py").read()
 
 
-print(slice_lines)
-print_with_highlight(code, slice_lines)
+program_node = program_to_ast(code)
+program_node = add_parent_info(program_node)
+pdg = construct_pdg(code, program_node)
+
+# Get the target node
+target_node = pdg.get_node_by_ast_node(program_node.body[0].body[-3])
+print("Target:", ast.unparse(target_node.ast_node))
+
+# Compute the backward slice
+backward_slice = compute_backward_slice(pdg, target_node)
+backward_slice = {node.ast_node for node in backward_slice}
+print_code_with_highlights(code, backward_slice)
