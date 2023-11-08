@@ -1,5 +1,6 @@
 import collections
 import gast as ast
+import textwrap
 
 from python_graphs import instruction as instruction_module
 from python_graphs.program_utils import program_to_ast
@@ -129,8 +130,13 @@ class ProgramDependenceGraph(ProgramGraph):
 
 def construct_pdg(code, program_node):
     """Construct the Program Dependence Graph from an AST."""
+
+    # Construct the control flow graph
     cfg = control_flow.get_control_flow_graph(program_node)
-    render_cfg(cfg, include_src=code, path="cfg.png")
+    try:
+        render_cfg(cfg, path="cfg.png")
+    except:
+        pass
 
     # Perform the analyses
     def_use_analysis = VariableDefUseAnalysis()  # NOTE: Works perfectly!
@@ -144,9 +150,10 @@ def construct_pdg(code, program_node):
 
     # Construct the data dependence graph
     pdg = ProgramDependenceGraph(cfg, def_use_analysis, reaching_def_analysis)
-
-    # render the data dependence graph
-    render_pg(pdg, path="pdg.png")
+    try:
+        render_pg(pdg, path="pdg.png")
+    except:
+        pass
 
     return pdg
 
