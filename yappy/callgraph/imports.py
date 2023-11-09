@@ -15,6 +15,15 @@ def get_all_module_members(module_path):
     ]
 
 
+def get_package_name(file_path):
+    parts = []
+    current_dir = os.path.dirname(file_path)
+    while os.path.exists(os.path.join(current_dir, "__init__.py")):
+        parts.append(os.path.basename(current_dir))
+        current_dir = os.path.dirname(current_dir)
+    return ".".join(reversed(parts))
+
+
 def replace_imports(file_path):
     with open(file_path, "r") as file:
         try:
@@ -23,25 +32,44 @@ def replace_imports(file_path):
             raise SyntaxError("Syntax error in file: {}".format(file_path))
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.names[0].name == "*":
+        # check if it is an importFrom node
+        if isinstance(node, ast.ImportFrom):
+            # find the part of the imported module
             module_parts = (node.module or "").split(".")
 
-            # @manish: this is slightly hacky but tested,
-            # @manish: preferably use for static analysis only
-            module_path = (
-                os.path.join(
-                    os.path.dirname(file_path),
-                    *[".."] * (node.level - 1),
-                    *module_parts
-                )
-                + ".py"
+            # reconstruct the path to the imported module
+            module_path = os.path.join(
+                os.path.dirname(file_path), *[".."] * (node.level - 1), *module_parts
             )
+            module_file = module_path + ".py"
 
-            if os.path.exists(module_path):
-                all_members = get_all_module_members(module_path)
-                node.names = [
-                    ast.alias(name=member, asname=None) for member in all_members
-                ]
+            # print("Original import:", ast.unparse(node))
+            # print("Module parts:", module_parts)
+            # print("Module file:", module_file)
+
+            # convert any relative imports to absolute imports
+            if node.level > 0:
+                # print("== Found relative import ==")
+                package_name = get_package_name(file_path)
+                abs_parts = package_name.split(".") + module_parts[node.level - 1 :]
+                node.module = ".".join(abs_parts)
+                node.level = 0
+                # print("Updated relative import:", ast.unparse(node))
+                # print("============================")
+
+            # convert any wildcard imports to explicit imports
+            if node.names[0].name == "*":
+                # print("== Found wildcard import ==")
+                if os.path.exists(module_file):
+                    all_members = get_all_module_members(module_file)
+                    node.names = [
+                        ast.alias(name=member, asname=None) for member in all_members
+                    ]
+                #     print("Updated wildcard import:", ast.unparse(node))
+                # print("============================")
+
+            # print("Final import: {}\n".format(ast.unparse(node)))
+
     with open(file_path, "w") as file:
         file.write(ast.unparse(tree))
 
