@@ -51,8 +51,13 @@ def replace_imports(file_path):
             if node.level > 0:
                 # print("== Found relative import ==")
                 package_name = get_package_name(file_path)
-                abs_parts = package_name.split(".") + module_parts[node.level - 1 :]
-                node.module = ".".join(abs_parts)
+
+                if module_parts == [""]:
+                    node.module = package_name
+                else:
+                    abs_parts = package_name.split(".") + module_parts[node.level - 1 :]
+                    node.module = ".".join(abs_parts)
+
                 node.level = 0
                 # print("Updated relative import:", ast.unparse(node))
                 # print("============================")
