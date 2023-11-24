@@ -2,11 +2,11 @@ import json
 import os
 
 from yappy.callgraph.pycg import CallGraphGenerator, inverse_cg, formats
-from yappy.callgraph.imports import fix_imports
+from yappy.callgraph.imports import fix_repo_imports
 
 
-repo_path = "./data/yt-fts"
-repo_path = fix_imports(repo_path)
+repo_path = "./data/dias"
+repo_path = fix_repo_imports(repo_path)
 
 python_files = []
 for root, dirs, files in os.walk(repo_path):
