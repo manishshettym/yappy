@@ -1,3 +1,13 @@
+"""
+Application: Call chain analysis
+Description: This script finds all the call chains that lead to a function under test.
+
+Yappy Modules used:
+1. call graph
+
+TODO: update this to directly use the callgraph module
+"""
+
 import json
 from rich.console import Console
 

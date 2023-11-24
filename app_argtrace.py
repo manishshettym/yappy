@@ -1,3 +1,16 @@
+"""
+Application: Backward slicing for function arguments
+Description: This script finds the backward slice of a function's arguments by
+traversing the inverse call graph and program dependence graph backwards.
+
+Yappy Modules used:
+1. call graph
+2. program dependence graph
+3. backward slicing
+
+TODO: complete this!!
+"""
+
 import argparse
 import ast
 import os
