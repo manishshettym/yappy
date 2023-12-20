@@ -140,9 +140,13 @@ class RepoCallGraph:
     ):
         self.repo_path = repo_path
         self.call_graph: Dict[RepoEntity, List[RepoEntity]] = {}
+        self.inv_call_graph: Dict[RepoEntity, List[RepoEntity]] = {}
 
         if pycg_dict:
             self.load_pycg(pycg_dict)
+
+        if self.call_graph:
+            self.build_inverse_call_graph()
 
     def add_call(self, caller: RepoEntity, callee: RepoEntity):
         if callee.type is None:
@@ -189,6 +193,13 @@ class RepoCallGraph:
             caller.id: [callee.id for callee in callees]
             for caller, callees in self.call_graph.items()
         }
+
+    def build_inverse_call_graph(self):
+        for caller, callees in self.call_graph.items():
+            for callee in callees:
+                if callee not in self.inv_call_graph:
+                    self.inv_call_graph[callee] = []
+                self.inv_call_graph[callee].append(caller)
 
     # iterator for self.call_graph
     def __iter__(self):
