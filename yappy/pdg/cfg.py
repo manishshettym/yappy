@@ -1,4 +1,9 @@
-"""Computes the control flow graph for a Python program from its AST."""
+"""Computes the control flow graph for a Python program from its AST.
+
+Adapted, extended, and modified from: python-graphs [https://github.com/google-research/python-graphs/]
+Bieber, David, et al. "A Library for Representing Python Programs as Graphs for Machine Learning." 
+arXiv preprint arXiv:2208.07461 (2022).
+"""
 
 import itertools
 import uuid
