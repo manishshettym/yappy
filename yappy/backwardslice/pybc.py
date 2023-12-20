@@ -46,15 +46,12 @@ if __name__ == "__main__":
         return a
     """
 
-    # load the code from test.py
-    code = open("test1.py").read()
-
     program_node = program_to_ast(code)
     program_node = add_parent_info(program_node)
     pdg = construct_pdg(code, program_node)
 
     # Get the target node
-    target_ast_node = program_node.body[0].body[-1].body[-1]
+    target_ast_node = program_node.body[0].body[-1]
     target_node = pdg.get_node_by_ast_node(target_ast_node)
     print("Target:", ast.unparse(target_node.ast_node))
 
