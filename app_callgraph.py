@@ -9,27 +9,21 @@ Yappy Modules used:
 import json
 import os
 
-from yappy.callgraph.pycg import CallGraphGenerator, inverse_cg, formats
-from yappy.callgraph.imports import fix_repo_imports
+from yappy.callgraph.pycg import RepoCallGraph, CalleeType, construct_cg
 
+repo_path = "./yappy/data/dias"
+cg, icg, cg_sanity = construct_cg(repo_path)
 
-repo_path = "./data/dias"
-repo_path = fix_repo_imports(repo_path)
+# abstraction over the call graph for analysis
+repo_cg = RepoCallGraph(repo_path=repo_path, pycg_dict=cg)
 
-python_files = []
-for root, dirs, files in os.walk(repo_path):
-    for file in files:
-        if file.endswith(".py"):
-            python_files.append(os.path.abspath(os.path.join(root, file)))
+# e.g., finding the external functions (outside file) used by function
 
-cg_generator = CallGraphGenerator(python_files, repo_path)
-cg_generator.analyze()
+for func, uses in repo_cg:
+    if func.name == "rewrite_enclosed_sub":
+        print("Function: ", func.name)
+        print("Module Path:", func.module.file_path)
 
-formatter = formats.Simple(cg_generator)
-cg = formatter.generate()
-
-with open("./results/cg.json", "w+") as f:
-    f.write(json.dumps(cg))
-
-with open("./results/icg.json", "w+") as f:
-    f.write(json.dumps(inverse_cg(cg)))
+        for use in uses:
+            if use.type == CalleeType.EXTERNAL:
+                print("Call: ", use.name, " @ ", use.module.file_path)
