@@ -1,7 +1,7 @@
 """perform interprocedural backwards slicing using pybc"""
 
 import gast as ast
-from yappy.ast.astutils import build_ast, find_all_def_nodes, find_all_call_nodes
+from yappy.ast.astutils import build_ast, find_all_def_nodes
 from yappy.pdg.pypdg import construct_pdg, ProgramDependenceGraph
 from yappy.backwardslice.pybc import compute_backward_slice
 from yappy.backwardslice.utils import print_code_with_highlights
@@ -66,18 +66,20 @@ def get_backward_slice_of_callsite(caller_func: RepoEntity, called_func: RepoEnt
     Returns:
         set: the set of pdg nodes in the backward slice of the callsite
     """
-    caller_ast = None  # TODO: get the caller's AST
+    raise NotImplementedError
 
-    # TODO: can we pass AST or does it need to be gast
-    caller_pdg = construct_pdg(caller_ast)
+    # caller_ast = None  # TODO: get the caller's AST
 
-    callsite_ast_node = None  # TODO: get the callsite AST node
-    callsite_node = caller_pdg.get_node_by_ast_node(callsite_ast_node)
+    # # TODO: can we pass AST or does it need to be gast
+    # caller_pdg = construct_pdg(caller_ast)
 
-    backward_slice = compute_backward_slice(caller_pdg, callsite_node)
-    backward_slice = {node.ast_node for node in backward_slice}
+    # callsite_ast_node = None  # TODO: get the callsite AST node
+    # callsite_node = caller_pdg.get_node_by_ast_node(callsite_ast_node)
 
-    return backward_slice
+    # backward_slice = compute_backward_slice(caller_pdg, callsite_node)
+    # backward_slice = {node.ast_node for node in backward_slice}
+
+    # return backward_slice
 
 
 def get_interproc_slice(
