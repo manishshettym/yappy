@@ -13,7 +13,7 @@ def build_ast(code: str) -> ast.AST:
     Returns:
         ast.AST: the AST
     """
-    astree = gast.parse(code)
+    astree = ast.parse(code)
     astree = add_parent_info(astree)
     return astree
 

@@ -1,7 +1,7 @@
 import gast as ast
 import pygraphviz
 
-from yappy.ast.astutils import build_ast
+from python_graphs.program_utils import program_to_ast
 from yappy.pdg.pypdg import construct_pdg
 from yappy.backwardslice.utils import print_code_with_highlights
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         return a
     """
 
-    program_node = build_ast(code, use_gast=True)
+    program_node = program_to_ast(code)
     pdg = construct_pdg(program_node)
 
     # Get the target node
