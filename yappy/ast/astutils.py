@@ -1,6 +1,5 @@
 """ Utility functions for AST manipulation. """
 import ast
-import gast
 from typing import List, Optional
 
 
