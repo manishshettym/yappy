@@ -128,7 +128,7 @@ class ProgramDependenceGraph(ProgramGraph):
                 current = self.ipdom[current]
 
 
-def construct_pdg(code, program_node):
+def construct_pdg(program_node):
     """Construct the Program Dependence Graph from an AST."""
 
     # Construct the control flow graph
@@ -176,4 +176,4 @@ if __name__ == "__main__":
     """
 
     program_node = program_to_ast(code)
-    pdg = construct_pdg(code, program_node)
+    pdg = construct_pdg(program_node)

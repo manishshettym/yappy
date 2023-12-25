@@ -1,5 +1,6 @@
 """ Utility functions for AST manipulation. """
 import ast
+import gast
 from typing import List, Optional
 
 
@@ -12,7 +13,7 @@ def build_ast(code: str) -> ast.AST:
     Returns:
         ast.AST: the AST
     """
-    astree = ast.parse(code)
+    astree = gast.parse(code)
     astree = add_parent_info(astree)
     return astree
 
