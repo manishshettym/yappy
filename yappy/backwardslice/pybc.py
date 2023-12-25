@@ -46,7 +46,7 @@ if __name__ == "__main__":
         return a
     """
 
-    program_node = build_ast(code)
+    program_node = build_ast(code, use_gast=True)
     pdg = construct_pdg(program_node)
 
     # Get the target node
