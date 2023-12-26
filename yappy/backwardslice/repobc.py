@@ -1,64 +1,22 @@
 """perform interprocedural backwards slicing using pybc"""
 
+import astunparse
 import gast as ast
-from yappy.ast.astutils import build_ast, find_all_def_nodes
+
+from python_graphs.program_utils import program_to_ast
+
 from yappy.pdg.pypdg import construct_pdg, ProgramDependenceGraph
+from yappy.callgraph.pycg import RepoEntity, RepoCallGraph, construct_cg
 from yappy.backwardslice.pybc import compute_backward_slice
-from yappy.backwardslice.utils import print_code_with_highlights
-from yappy.callgraph.pycg import RepoEntity, RepoCallGraph, CalleeType, construct_cg
+from yappy.backwardslice.utils import (
+    print_code_with_highlights,
+    get_func_code,
+    find_callsite,
+    get_call_chains,
+)
 
 
-def get_call_chains_helper(
-    func_name: str,
-    repo_cg: RepoCallGraph,
-    call_chain: list,
-    call_chains: list,
-    visited: set,
-):
-    """Helper function for get_call_chains.
-    Args:
-        func_name (str): name of the function
-        repo_cg (RepoCallGraph): call graph of the repository
-        call_chain (list): call chain of the function
-        call_chains (list): call chains of the function
-        visited (set): visited functions
-    """
-    if func_name in visited:
-        return
-
-    visited.add(func_name)
-    call_chain.append(func_name)
-
-    if func_name not in repo_cg.inv_call_graph:
-        call_chains.append(call_chain.copy())
-        call_chain.pop()
-        return
-
-    for caller in repo_cg.inv_call_graph[func_name]:
-        get_call_chains_helper(caller, repo_cg, call_chain, call_chains, visited)
-
-    call_chain.pop()
-
-
-def get_call_chains(func_name: str, repo_cg: RepoCallGraph):
-    """Given a function name, return its call chains.
-    Args:
-        func_name (str): name of the function
-        repo_cg (RepoCallGraph): call graph of the repository
-    Returns:
-        list: call chains of the function
-    """
-    call_chains, call_chain = [], []
-    visited = set()
-    get_call_chains_helper(func_name, repo_cg, call_chain, call_chains, visited)
-    return call_chains
-
-
-def get_func_code(func: RepoEntity) -> str:
-    raise NotImplementedError
-
-
-def get_backward_slice_of_callsite(caller_func: RepoEntity, called_func: RepoEntity):
+def get_callsite_bc(caller_func: RepoEntity, called_func: RepoEntity):
     """Given a caller function and a called function, return the backward slice of the callsite.
     Args:
         caller_func (RepoEntity): the caller function
@@ -66,20 +24,20 @@ def get_backward_slice_of_callsite(caller_func: RepoEntity, called_func: RepoEnt
     Returns:
         set: the set of pdg nodes in the backward slice of the callsite
     """
-    raise NotImplementedError
 
-    # caller_ast = None  # TODO: get the caller's AST
+    caller_code = get_func_code(caller_func)
+    caller_ast = program_to_ast(caller_code)
+    caller_pdg = construct_pdg(caller_ast)
 
-    # # TODO: can we pass AST or does it need to be gast
-    # caller_pdg = construct_pdg(caller_ast)
+    callsite_node = find_callsite(caller_ast, called_func.name)
+    if callsite_node is None:
+        raise ValueError(f"Func '{called_func}' not called in '{caller_func}'.")
 
-    # callsite_ast_node = None  # TODO: get the callsite AST node
-    # callsite_node = caller_pdg.get_node_by_ast_node(callsite_ast_node)
+    callsite_node = caller_pdg.get_node_by_source(astunparse.unparse(callsite_node))
 
-    # backward_slice = compute_backward_slice(caller_pdg, callsite_node)
-    # backward_slice = {node.ast_node for node in backward_slice}
-
-    # return backward_slice
+    backward_slice = compute_backward_slice(caller_pdg, callsite_node)
+    backward_slice = {node.ast_node for node in backward_slice}
+    print_code_with_highlights(caller_code, backward_slice)
 
 
 def get_interproc_slice(
@@ -101,16 +59,18 @@ def get_interproc_slice(
     for call_chain in call_chains:
         caller, callee = None, None
 
-        for func in call_chain:
-            caller = func
-
-            if func == target_func:
-                callee = target_func
+        for caller in call_chain:
+            if caller == target_func:
+                print("[In] destination: ", caller)
+                print("[Find] target: ", target_ast_node)
             else:
-                bc = get_backward_slice_of_callsite(caller, callee)
-                caller = callee
-                interprocedural_slice.update(bc)
-                print(bc)
+                print("[In] caller: ", caller)
+                print("[Find] callee: ", callee)
+                bc = get_callsite_bc(caller, callee)
+                # interprocedural_slice.update(bc)
+                # print(bc)
+
+            callee = caller
 
     return interprocedural_slice
 
@@ -121,5 +81,6 @@ if __name__ == "__main__":
     repo_cg = RepoCallGraph(repo_path=repo_path, pycg_dict=cg)
 
     target_func = RepoEntity(id="yt_fts.download.vtt_to_db", repo_path=repo_path)
-    target_ast_node = None
-    interprocedural_slice = get_interproc_slice(repo_cg, target_func, target_ast_node)
+    interprocedural_slice = get_interproc_slice(
+        repo_cg, target_func, target_ast_node=None
+    )
