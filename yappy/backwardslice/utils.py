@@ -13,6 +13,7 @@ def print_code_with_highlights(code, backward_slice):
         backward_slice (set): a set of ast.Node objects that are in the slice
     """
     lines = code.split("\n")
+    # prev_no_highlight = False
     for i, line in enumerate(lines):
         node = None
         for b_node in backward_slice:
@@ -26,8 +27,32 @@ def print_code_with_highlights(code, backward_slice):
                     break
         if node is not None:
             print(colored(line, "green", attrs=["bold"]))
+            # prev_no_highlight = False
         else:
             print(colored(line, "grey"))
+
+            # if not prev_no_highlight:
+            #     print(colored(f"{get_indent(line)}...", "grey"))
+            #     prev_no_highlight = True
+
+
+def get_indent(line: str) -> str:
+    """Get the indent of a line.
+
+    Args:
+        line (str): line of code
+
+    Returns:
+        str: indent of the line
+    """
+    indent = ""
+    for c in line:
+        if c == " ":
+            indent += c
+        else:
+            break
+
+    return indent
 
 
 def get_func_code(func: RepoEntity) -> str:

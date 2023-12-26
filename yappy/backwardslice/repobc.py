@@ -57,7 +57,8 @@ def get_interproc_slice(
     call_chains = get_call_chains(target_func, repo_cg)
     interprocedural_slice = set()
 
-    for call_chain in call_chains:
+    for idx, call_chain in enumerate(call_chains):
+        print(f"=============== Chain {idx} ===============")
         caller, callee = None, None
 
         for caller in call_chain:
@@ -73,6 +74,8 @@ def get_interproc_slice(
 
             callee = caller
 
+        print(f"=============== End of chain ===============\n\n")
+
     return interprocedural_slice
 
 
@@ -81,7 +84,7 @@ if __name__ == "__main__":
     cg, _, _ = construct_cg(repo_path)
     repo_cg = RepoCallGraph(repo_path=repo_path, pycg_dict=cg)
 
-    target_func = RepoEntity(id="yt_fts.download.vtt_to_db", repo_path=repo_path)
+    target_func = RepoEntity(id="yt_fts.download.get_vid_title", repo_path=repo_path)
     interprocedural_slice = get_interproc_slice(
         repo_cg, target_func, target_ast_node=None
     )
