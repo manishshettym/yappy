@@ -13,6 +13,7 @@ pyan3 = "^1.2.0"
 setuptools = "^68.2.2"
 python-graphs = "^1.2.3"
 rich = "^13.6.0"
+termcolor = "^2.4.0"
 
 
 [build-system]

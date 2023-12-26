@@ -289,6 +289,20 @@ files = [
 ]
 
 [[package]]
+name = "termcolor"
+version = "2.4.0"
+description = "ANSI color formatting for output in terminal"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "termcolor-2.4.0-py3-none-any.whl", hash = "sha256:9297c0df9c99445c2412e832e882a7884038a25617c60cea2ad69488d4040d63"},
+    {file = "termcolor-2.4.0.tar.gz", hash = "sha256:aab9e56047c8ac41ed798fa36d892a37aca6b3e9159f3e0c24bc64a9b3ac7b7a"},
+]
+
+[package.extras]
+tests = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "wheel"
 version = "0.41.3"
 description = "A built-package format for Python"
@@ -305,4 +319,4 @@ test = ["pytest (>=6.0.0)", "setuptools (>=65)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "cc9c09a5eef3a7ce05a2906f7c4db35f6d48ac00d7baab2ddb62aa341cc7bdd2"
+content-hash = "b0edee2afcfc6008ef05585fbed2b207b5a199d26b37976b6a40d40b850ca196"

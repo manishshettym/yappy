@@ -1,5 +1,6 @@
 import astunparse
 import gast as ast
+from termcolor import colored
 
 from yappy.callgraph.pycg import RepoEntity, RepoCallGraph
 
@@ -24,9 +25,9 @@ def print_code_with_highlights(code, backward_slice):
                     node = b_node
                     break
         if node is not None:
-            print(f"\033[1;31;92m{line}\033[0m")
+            print(colored(line, "green", attrs=["bold"]))
         else:
-            print(line)
+            print(colored(line, "grey"))
 
 
 def get_func_code(func: RepoEntity) -> str:
