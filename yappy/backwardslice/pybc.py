@@ -2,6 +2,8 @@ import gast as ast
 import pygraphviz
 
 from python_graphs.program_utils import program_to_ast
+
+from yappy.ast.astutils import add_parent_info
 from yappy.pdg.pypdg import construct_pdg
 from yappy.backwardslice.utils import print_code_with_highlights
 
@@ -46,7 +48,12 @@ if __name__ == "__main__":
         return a
     """
 
-    program_node = program_to_ast(code)
+    program_node = add_parent_info(program_to_ast(code))
+
+    for node in ast.walk(program_node):
+        for child in ast.iter_child_nodes(node):
+            child.parent = node
+
     pdg = construct_pdg(program_node)
 
     # Get the target node
@@ -57,4 +64,6 @@ if __name__ == "__main__":
     # Compute the backward slice
     backward_slice = compute_backward_slice(pdg, target_node)
     backward_slice = {node.ast_node for node in backward_slice}
+
+    # print("Backward slice:", [ast.unparse(node) for node in backward_slice])
     print_code_with_highlights(code, backward_slice)
