@@ -5,6 +5,7 @@ import gast as ast
 
 from python_graphs.program_utils import program_to_ast
 
+from yappy.ast.astutils import add_parent_info
 from yappy.pdg.pypdg import construct_pdg, ProgramDependenceGraph
 from yappy.callgraph.pycg import RepoEntity, RepoCallGraph, construct_cg
 from yappy.backwardslice.pybc import compute_backward_slice
@@ -26,7 +27,7 @@ def get_callsite_bc(caller_func: RepoEntity, called_func: RepoEntity):
     """
 
     caller_code = get_func_code(caller_func)
-    caller_ast = program_to_ast(caller_code)
+    caller_ast = add_parent_info(program_to_ast(caller_code))
     caller_pdg = construct_pdg(caller_ast)
 
     callsite_node = find_callsite(caller_ast, called_func.name)
