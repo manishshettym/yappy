@@ -82,6 +82,8 @@ class RepoEntity:
         name = self.id.split(".")[-1]
         if name == "__init__":
             return self.id.split(".")[-2]
+        if "lambda" in name:
+            return self.id.split(".")[-2]
         return name
 
     @property
